@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'fitnease_ml' => [
+        'url' => env('ML_SERVICE_URL', 'http://18.136.99.170:8090/ml'),
+    ],
+
 ];

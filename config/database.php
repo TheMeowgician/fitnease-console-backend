@@ -114,6 +114,85 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        // Remote FitNEase Service Databases (EC2)
+        'fitnease_auth' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_AUTH_DB_PORT', '3307'),
+            'database' => 'fitnease_auth_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_content' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_CONTENT_DB_PORT', '3308'),
+            'database' => 'fitnease_content_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_tracking' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_TRACKING_DB_PORT', '3315'),
+            'database' => 'fitnease_tracking_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_engagement' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_ENGAGEMENT_DB_PORT', '3310'),
+            'database' => 'fitnease_engagement_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_social' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_SOCIAL_DB_PORT', '3314'),
+            'database' => 'fitnease_social_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_planning' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_PLANNING_DB_PORT', '3313'),
+            'database' => 'fitnease_planning_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
     ],
 
     /*
