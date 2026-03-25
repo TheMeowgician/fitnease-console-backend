@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\AuditLogCreated;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +14,7 @@ class AuditService
         ?int $resourceId = null,
         ?array $details = null
     ): AuditLog {
-        return AuditLog::create([
+        $log = AuditLog::create([
             'admin_user_id' => Auth::id(),
             'action' => $action,
             'resource_type' => $resourceType,
@@ -21,5 +22,9 @@ class AuditService
             'details' => $details,
             'ip_address' => request()->ip(),
         ]);
+
+        broadcast(new AuditLogCreated($log->load('adminUser:id,name,email')->toArray()));
+
+        return $log;
     }
 }
