@@ -1,0 +1,51 @@
+# Dependencies — rebuilt inside the image via composer install
+vendor/
+node_modules/
+
+# Local environment file — never bake secrets into the image
+.env
+.env.*
+!.env.example
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Tests — not needed at runtime
+tests/
+phpunit.xml
+phpunit.xml.dist
+.phpunit.cache/
+.phpunit.result.cache
+
+# Development tooling config
+.editorconfig
+.php-cs-fixer.php
+.php-cs-fixer.dist.php
+phpstan.neon
+phpstan.neon.dist
+psalm.xml
+
+# Runtime-generated logs and cache (will be created fresh inside the container)
+storage/logs/*.log
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+
+# Build artefacts / local IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker files themselves (no need to copy into the image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Frontend build artefacts (API-only service, no frontend assets)
+public/build/
+public/hot

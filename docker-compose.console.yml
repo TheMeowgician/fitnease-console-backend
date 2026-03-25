@@ -1,0 +1,59 @@
+services:
+
+  fitnease-console-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitnease-console-backend
+    restart: unless-stopped
+    ports:
+      - "8020:80"
+    env_file:
+      - .env
+    environment:
+      # Override DB_HOST to reach the console's own sidecar database
+      - DB_HOST=fitnease-console-db
+      - DB_PORT=3306
+      - DB_DATABASE=fitnease_console_db
+      # Remote microservice databases live on the EC2 host itself.
+      # host.docker.internal resolves to the host machine from inside the container,
+      # which is the correct address when this compose stack runs on the same EC2
+      # instance as the main fitnease docker-compose stack.
+      - EC2_DB_HOST=host.docker.internal
+    networks:
+      - fitnease-network
+    # Allows EC2_DB_HOST=host.docker.internal to resolve correctly on Linux hosts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      fitnease-console-db:
+        condition: service_healthy
+
+  fitnease-console-db:
+    image: mysql:8.0
+    container_name: fitnease-console-db
+    restart: unless-stopped
+    ports:
+      - "3320:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=fitnease_console_db
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - fitnease_console_db_data:/var/lib/mysql
+    networks:
+      - fitnease-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  fitnease_console_db_data:
+
+networks:
+  fitnease-network:
+    external: true
