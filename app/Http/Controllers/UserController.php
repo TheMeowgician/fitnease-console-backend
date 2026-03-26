@@ -103,6 +103,18 @@ class UserController extends Controller
             foreach ($days as $day) {
                 $d = $planData[$day] ?? null;
                 if (!$d) continue;
+                $exercises = [];
+                if (isset($d['exercises']) && is_array($d['exercises'])) {
+                    foreach ($d['exercises'] as $ex) {
+                        $exercises[] = [
+                            'exercise_id' => $ex['exercise_id'] ?? null,
+                            'exercise_name' => $ex['exercise_name'] ?? null,
+                            'target_muscle_group' => $ex['target_muscle_group'] ?? null,
+                            'difficulty_level' => $ex['difficulty_level'] ?? null,
+                        ];
+                    }
+                }
+
                 $schedule[] = [
                     'day' => $day,
                     'rest_day' => $d['rest_day'] ?? false,
@@ -111,6 +123,7 @@ class UserController extends Controller
                     'exercise_count' => isset($d['exercises']) ? count($d['exercises']) : 0,
                     'estimated_duration' => $d['estimated_duration'] ?? null,
                     'focus_areas' => $d['focus_areas'] ?? [],
+                    'exercises' => $exercises,
                 ];
             }
 
