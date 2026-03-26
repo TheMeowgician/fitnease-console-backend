@@ -81,6 +81,61 @@ class UserController extends Controller
         ]);
     }
 
+    public function weeklyPlan(int $id): JsonResponse
+    {
+        try {
+            $plan = DB::connection('fitnease_planning')
+                ->table('weekly_workout_plans')
+                ->where('user_id', $id)
+                ->orderByDesc('is_current_week')
+                ->orderByDesc('is_active')
+                ->orderByDesc('week_start_date')
+                ->first();
+
+            if (!$plan) {
+                return response()->json(['plan' => null]);
+            }
+
+            $planData = json_decode($plan->plan_data, true) ?? [];
+            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            $schedule = [];
+
+            foreach ($days as $day) {
+                $d = $planData[$day] ?? null;
+                if (!$d) continue;
+                $schedule[] = [
+                    'day' => $day,
+                    'rest_day' => $d['rest_day'] ?? false,
+                    'planned' => $d['planned'] ?? false,
+                    'completed' => $d['completed'] ?? false,
+                    'exercise_count' => isset($d['exercises']) ? count($d['exercises']) : 0,
+                    'estimated_duration' => $d['estimated_duration'] ?? null,
+                    'focus_areas' => $d['focus_areas'] ?? [],
+                ];
+            }
+
+            return response()->json([
+                'plan' => [
+                    'plan_id' => $plan->plan_id,
+                    'week_start_date' => $plan->week_start_date,
+                    'week_end_date' => $plan->week_end_date,
+                    'is_active' => (bool) $plan->is_active,
+                    'is_current_week' => (bool) $plan->is_current_week,
+                    'total_workout_days' => $plan->total_workout_days,
+                    'total_rest_days' => $plan->total_rest_days,
+                    'total_exercises' => $plan->total_exercises,
+                    'estimated_weekly_duration' => $plan->estimated_weekly_duration,
+                    'completion_rate' => (float) $plan->completion_rate,
+                    'generation_method' => $plan->generation_method,
+                    'ml_generated' => (bool) $plan->ml_generated,
+                    'schedule' => $schedule,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['plan' => null, 'error' => $e->getMessage()], 200);
+        }
+    }
+
     private const LEVEL_RANK = [
         'beginner' => 1,
         'intermediate' => 2,
