@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::get('/ping', fn () => response()->json(['status' => 'ok', 'service' => 'fitnease-console']));
 
 // Protected
 Route::middleware('auth:sanctum')->group(function () {

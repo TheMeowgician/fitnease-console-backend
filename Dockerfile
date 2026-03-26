@@ -56,10 +56,11 @@ COPY . .
 # Generate the optimised autoloader (skip scripts — no .env during build)
 RUN composer dump-autoload --optimize --no-dev --no-scripts
 
-# Set correct ownership and permissions for Laravel writable directories
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+# Ensure Laravel framework directories exist and set permissions
+RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Run package discovery and cache config at container start (when .env is available)
 CMD ["sh", "-c", "php artisan package:discover --ansi && php artisan config:clear && apache2-foreground"]
