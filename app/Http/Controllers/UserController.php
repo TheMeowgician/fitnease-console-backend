@@ -68,6 +68,12 @@ class UserController extends Controller
         ]);
     }
 
+    private const LEVEL_RANK = [
+        'beginner' => 1,
+        'intermediate' => 2,
+        'advanced' => 3,
+    ];
+
     public function updateFitnessLevel(Request $request, int $id): JsonResponse
     {
         $request->validate([
@@ -84,21 +90,91 @@ class UserController extends Controller
         }
 
         $oldLevel = $user->fitness_level;
+        $newLevel = $request->fitness_level;
+
+        if ($oldLevel === $newLevel) {
+            return response()->json([
+                'message' => 'User is already at this fitness level.',
+                'fitness_level' => $oldLevel,
+            ]);
+        }
 
         DB::connection('fitnease_auth')
             ->table('users')
             ->where('user_id', $id)
-            ->update(['fitness_level' => $request->fitness_level]);
+            ->update(['fitness_level' => $newLevel]);
 
         AuditService::log('update_fitness_level', 'user', $id, [
             'old_level' => $oldLevel,
-            'new_level' => $request->fitness_level,
+            'new_level' => $newLevel,
         ]);
+
+        // Unlock achievement if this is an upgrade (not a downgrade)
+        $achievementUnlocked = null;
+        $oldRank = self::LEVEL_RANK[$oldLevel] ?? 0;
+        $newRank = self::LEVEL_RANK[$newLevel] ?? 0;
+
+        if ($newRank > $oldRank) {
+            $achievementUnlocked = $this->tryUnlockLevelAchievement($id, $newLevel);
+        }
 
         return response()->json([
             'message' => 'Fitness level updated.',
             'old_level' => $oldLevel,
-            'new_level' => $request->fitness_level,
+            'new_level' => $newLevel,
+            'achievement_unlocked' => $achievementUnlocked,
         ]);
+    }
+
+    /**
+     * Insert level achievement directly into engagement DB (if not already earned).
+     * Uses try/catch so a failure here never blocks the fitness level update.
+     */
+    private function tryUnlockLevelAchievement(int $userId, string $level): ?array
+    {
+        try {
+            // Find the level achievement
+            $achievement = DB::connection('fitnease_engagement')
+                ->table('achievements')
+                ->where('achievement_type', 'special')
+                ->whereRaw("JSON_EXTRACT(criteria_json, '$.type') = ?", ['level_progression'])
+                ->whereRaw("JSON_EXTRACT(criteria_json, '$.level') = ?", [$level])
+                ->first();
+
+            if (!$achievement) {
+                return null;
+            }
+
+            // Check if already unlocked
+            $existing = DB::connection('fitnease_engagement')
+                ->table('user_achievements')
+                ->where('user_id', $userId)
+                ->where('achievement_id', $achievement->achievement_id)
+                ->first();
+
+            if ($existing) {
+                return ['name' => $achievement->achievement_name, 'already_earned' => true];
+            }
+
+            // Insert the achievement
+            DB::connection('fitnease_engagement')
+                ->table('user_achievements')
+                ->insert([
+                    'user_id' => $userId,
+                    'achievement_id' => $achievement->achievement_id,
+                    'progress_percentage' => 100.00,
+                    'is_completed' => true,
+                    'earned_at' => now(),
+                    'points_earned' => $achievement->points_value,
+                    'notification_sent' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            return ['name' => $achievement->achievement_name, 'points' => $achievement->points_value];
+        } catch (\Exception $e) {
+            // Never block fitness level update due to achievement failure
+            return ['error' => 'Could not unlock achievement: ' . $e->getMessage()];
+        }
     }
 }

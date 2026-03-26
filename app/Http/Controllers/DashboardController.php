@@ -64,6 +64,21 @@ class DashboardController extends Controller
             $stats['content_error'] = $e->getMessage();
         }
 
+        // Connection checks for remaining services
+        foreach ([
+            'engagement' => 'fitnease_engagement',
+            'planning' => 'fitnease_planning',
+            'comms' => 'fitnease_comms',
+            'media' => 'fitnease_media',
+            'operations' => 'fitnease_operations',
+        ] as $name => $connection) {
+            try {
+                DB::connection($connection)->getPdo();
+            } catch (\Exception $e) {
+                $stats["{$name}_error"] = $e->getMessage();
+            }
+        }
+
         return response()->json($stats);
     }
 

@@ -15,6 +15,9 @@ class HealthController extends Controller
         'engagement' => ['connection' => 'fitnease_engagement', 'port' => 8003],
         'social' => ['connection' => 'fitnease_social', 'port' => 8006],
         'planning' => ['connection' => 'fitnease_planning', 'port' => 8005],
+        'comms' => ['connection' => 'fitnease_comms', 'port' => 8001],
+        'media' => ['connection' => 'fitnease_media', 'port' => 8004],
+        'operations' => ['connection' => 'fitnease_operations', 'port' => 8010],
     ];
 
     public function index(): JsonResponse

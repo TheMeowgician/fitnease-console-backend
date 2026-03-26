@@ -193,6 +193,45 @@ return [
             'strict' => true,
         ],
 
+        'fitnease_comms' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_COMMS_DB_PORT', '3309'),
+            'database' => 'fitnease_comms_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_media' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_MEDIA_DB_PORT', '3311'),
+            'database' => 'fitnease_media_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
+        'fitnease_operations' => [
+            'driver' => 'mysql',
+            'host' => env('EC2_DB_HOST', '18.136.99.170'),
+            'port' => env('EC2_OPERATIONS_DB_PORT', '3312'),
+            'database' => 'fitnease_operations_db',
+            'username' => env('EC2_DB_USERNAME', 'root'),
+            'password' => env('EC2_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
     ],
 
     /*
