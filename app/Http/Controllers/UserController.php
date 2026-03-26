@@ -190,22 +190,13 @@ class UserController extends Controller
     private function syncAssessmentFitnessLevel(int $userId, string $newLevel): void
     {
         try {
-            $updated = DB::connection('fitnease_auth')
-                ->table('fitness_assessments')
-                ->where('user_id', $userId)
-                ->where('assessment_type', 'initial_onboarding')
-                ->update([
-                    'assessment_data' => DB::raw(
-                        "JSON_SET(assessment_data, '$.fitness_level', " . DB::connection('fitnease_auth')->getPdo()->quote($newLevel) . ")"
-                    ),
-                    'updated_at' => now(),
-                ]);
-
-            // If no initial_onboarding assessment exists, skip silently
-            // (the mobile app will fall back to user.fitnessLevel)
+            DB::connection('fitnease_auth')
+                ->statement(
+                    "UPDATE fitness_assessments SET assessment_data = JSON_SET(assessment_data, '$.fitness_level', ?), updated_at = NOW() WHERE user_id = ? AND assessment_type = 'initial_onboarding'",
+                    [$newLevel, $userId]
+                );
         } catch (\Exception $e) {
-            // Log but never block — the users table update already succeeded
-            \Log::warning("Could not sync assessment fitness level for user {$userId}: " . $e->getMessage());
+            // Never block — the users table update already succeeded
         }
     }
 }
