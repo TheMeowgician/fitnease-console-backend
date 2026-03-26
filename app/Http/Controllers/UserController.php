@@ -104,6 +104,10 @@ class UserController extends Controller
             ->where('user_id', $id)
             ->update(['fitness_level' => $newLevel]);
 
+        // Also update fitness_assessments so the mobile app sees the change
+        // (mobile reads from assessment_data JSON, not users.fitness_level)
+        $this->syncAssessmentFitnessLevel($id, $newLevel);
+
         AuditService::log('update_fitness_level', 'user', $id, [
             'old_level' => $oldLevel,
             'new_level' => $newLevel,
@@ -175,6 +179,33 @@ class UserController extends Controller
         } catch (\Exception $e) {
             // Never block fitness level update due to achievement failure
             return ['error' => 'Could not unlock achievement: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Update the fitness_level inside the initial_onboarding assessment's assessment_data JSON.
+     * Uses JSON_SET to preserve all other fields in the JSON blob.
+     * Wrapped in try/catch so failure never blocks the main update.
+     */
+    private function syncAssessmentFitnessLevel(int $userId, string $newLevel): void
+    {
+        try {
+            $updated = DB::connection('fitnease_auth')
+                ->table('fitness_assessments')
+                ->where('user_id', $userId)
+                ->where('assessment_type', 'initial_onboarding')
+                ->update([
+                    'assessment_data' => DB::raw(
+                        "JSON_SET(assessment_data, '$.fitness_level', " . DB::connection('fitnease_auth')->getPdo()->quote($newLevel) . ")"
+                    ),
+                    'updated_at' => now(),
+                ]);
+
+            // If no initial_onboarding assessment exists, skip silently
+            // (the mobile app will fall back to user.fitnessLevel)
+        } catch (\Exception $e) {
+            // Log but never block — the users table update already succeeded
+            \Log::warning("Could not sync assessment fitness level for user {$userId}: " . $e->getMessage());
         }
     }
 }
