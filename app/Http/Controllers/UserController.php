@@ -11,25 +11,38 @@ class UserController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = DB::connection('fitnease_auth')->table('users');
+        $query = DB::connection('fitnease_auth')
+            ->table('users')
+            ->leftJoinSub(
+                DB::connection('fitnease_auth')
+                    ->table('personal_access_tokens')
+                    ->select('tokenable_id', DB::raw('MAX(last_used_at) as last_active'))
+                    ->groupBy('tokenable_id'),
+                'tokens',
+                'users.user_id',
+                '=',
+                'tokens.tokenable_id'
+            );
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('username', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
+                $q->where('users.username', 'like', "%{$search}%")
+                  ->orWhere('users.email', 'like', "%{$search}%")
+                  ->orWhere('users.first_name', 'like', "%{$search}%")
+                  ->orWhere('users.last_name', 'like', "%{$search}%");
             });
         }
 
         if ($fitnessLevel = $request->query('fitness_level')) {
-            $query->where('fitness_level', $fitnessLevel);
+            $query->where('users.fitness_level', $fitnessLevel);
         }
 
         $users = $query->select([
-            'user_id as id', 'username', 'first_name', 'last_name', 'email',
-            'fitness_level', 'age', 'gender', 'created_at', 'updated_at',
-        ])->orderBy('created_at', 'desc')->paginate(20);
+            'users.user_id as id', 'users.username', 'users.first_name', 'users.last_name', 'users.email',
+            'users.fitness_level', 'users.age', 'users.gender', 'users.created_at', 'users.updated_at',
+            'tokens.last_active',
+            DB::raw('CASE WHEN tokens.last_active >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END as is_online'),
+        ])->orderByDesc('is_online')->orderByDesc('users.created_at')->paginate(20);
 
         return response()->json($users);
     }
