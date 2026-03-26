@@ -42,7 +42,7 @@ class MLController extends Controller
 
         try {
             $response = Http::timeout(10)
-                ->get("{$mlUrl}/api/v1/model-info");
+                ->get("{$mlUrl}/api/v1/model-status");
 
             if ($response->failed()) {
                 return response()->json([

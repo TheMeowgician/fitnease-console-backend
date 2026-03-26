@@ -45,7 +45,7 @@ class HealthController extends Controller
         // Check ML service
         try {
             $mlUrl = config('services.fitnease_ml.url');
-            $response = Http::timeout(5)->get("{$mlUrl}/api/v1/model-info");
+            $response = Http::timeout(5)->get("{$mlUrl}/api/v1/model-status");
             $health['ml'] = [
                 'api' => $response->successful() ? 'reachable' : 'error',
                 'status' => $response->successful() ? 'healthy' : 'unhealthy',
