@@ -106,7 +106,7 @@ class UserController extends Controller
 
         // Also update fitness_assessments so the mobile app sees the change
         // (mobile reads from assessment_data JSON, not users.fitness_level)
-        $this->syncAssessmentFitnessLevel($id, $newLevel);
+        $syncResult = $this->syncAssessmentFitnessLevel($id, $newLevel);
 
         AuditService::log('update_fitness_level', 'user', $id, [
             'old_level' => $oldLevel,
@@ -127,6 +127,7 @@ class UserController extends Controller
             'old_level' => $oldLevel,
             'new_level' => $newLevel,
             'achievement_unlocked' => $achievementUnlocked,
+            'assessment_sync' => $syncResult,
         ]);
     }
 
@@ -187,16 +188,17 @@ class UserController extends Controller
      * Uses JSON_SET to preserve all other fields in the JSON blob.
      * Wrapped in try/catch so failure never blocks the main update.
      */
-    private function syncAssessmentFitnessLevel(int $userId, string $newLevel): void
+    private function syncAssessmentFitnessLevel(int $userId, string $newLevel): ?string
     {
         try {
-            DB::connection('fitnease_auth')
-                ->statement(
-                    "UPDATE fitness_assessments SET assessment_data = JSON_SET(assessment_data, '$.fitness_level', ?), updated_at = NOW() WHERE user_id = ? AND assessment_type = 'initial_onboarding'",
-                    [$newLevel, $userId]
+            $affected = DB::connection('fitnease_auth')
+                ->update(
+                    "UPDATE fitness_assessments SET assessment_data = JSON_SET(assessment_data, '$.fitness_level', ?), updated_at = NOW() WHERE user_id = ? AND assessment_type = ?",
+                    [$newLevel, $userId, 'initial_onboarding']
                 );
+            return "synced:{$affected}";
         } catch (\Exception $e) {
-            // Never block — the users table update already succeeded
+            return "sync_error:" . $e->getMessage();
         }
     }
 }
