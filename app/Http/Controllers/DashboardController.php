@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
@@ -26,6 +27,13 @@ class DashboardController extends Controller
                 ->table('users')
                 ->where('created_at', '>=', now()->subWeek())
                 ->count();
+
+            // Active users: tokens used in the last 15 minutes
+            $stats['active_users'] = DB::connection('fitnease_auth')
+                ->table('personal_access_tokens')
+                ->where('last_used_at', '>=', now()->subMinutes(15))
+                ->distinct('tokenable_id')
+                ->count('tokenable_id');
         } catch (\Exception $e) {
             $stats['auth_error'] = $e->getMessage();
         }
@@ -77,6 +85,17 @@ class DashboardController extends Controller
             } catch (\Exception $e) {
                 $stats["{$name}_error"] = $e->getMessage();
             }
+        }
+
+        // ML service HTTP health check
+        try {
+            $mlUrl = config('services.fitnease_ml.url');
+            $response = Http::timeout(5)->get("{$mlUrl}/api/v1/model-status");
+            if (!$response->successful()) {
+                $stats['ml_error'] = 'ML service returned status ' . $response->status();
+            }
+        } catch (\Exception $e) {
+            $stats['ml_error'] = $e->getMessage();
         }
 
         return response()->json($stats);
