@@ -15,11 +15,14 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => 'required|email',
+            'login' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $admin = AdminUser::where('email', $request->email)->first();
+        $login = $request->login;
+        $admin = AdminUser::where('email', $login)
+            ->orWhere('name', $login)
+            ->first();
 
         if (!$admin || !Hash::check($request->password, $admin->password)) {
             return response()->json(['message' => 'Invalid credentials.'], 401);
