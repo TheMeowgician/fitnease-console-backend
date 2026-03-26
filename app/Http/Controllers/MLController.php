@@ -9,13 +9,21 @@ use Illuminate\Support\Facades\Http;
 
 class MLController extends Controller
 {
-    public function getRecommendations(int $userId): JsonResponse
+    public function getRecommendations(Request $request, int $userId): JsonResponse
     {
         $mlUrl = config('services.fitnease_ml.url');
 
         try {
+            $query = [];
+            if ($request->has('content_weight')) {
+                $query['content_weight'] = (float) $request->query('content_weight');
+            }
+            if ($request->has('collaborative_weight')) {
+                $query['collaborative_weight'] = (float) $request->query('collaborative_weight');
+            }
+
             $response = Http::timeout(30)
-                ->get("{$mlUrl}/api/v1/recommendations/{$userId}");
+                ->get("{$mlUrl}/api/v1/recommendations/{$userId}", $query);
 
             if ($response->failed()) {
                 return response()->json([
