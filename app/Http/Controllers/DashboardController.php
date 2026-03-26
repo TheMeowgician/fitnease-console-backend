@@ -29,11 +29,32 @@ class DashboardController extends Controller
                 ->count();
 
             // Active users: tokens used in the last 15 minutes
-            $stats['active_users'] = DB::connection('fitnease_auth')
+            $activeTokens = DB::connection('fitnease_auth')
                 ->table('personal_access_tokens')
+                ->select('tokenable_id', DB::raw('MAX(last_used_at) as last_active'))
                 ->where('last_used_at', '>=', now()->subMinutes(15))
-                ->distinct('tokenable_id')
-                ->count('tokenable_id');
+                ->groupBy('tokenable_id')
+                ->get();
+
+            $stats['active_users'] = $activeTokens->count();
+
+            if ($activeTokens->isNotEmpty()) {
+                $activeIds = $activeTokens->pluck('tokenable_id')->toArray();
+                $activeMap = $activeTokens->keyBy('tokenable_id');
+
+                $users = DB::connection('fitnease_auth')
+                    ->table('users')
+                    ->whereIn('user_id', $activeIds)
+                    ->select('user_id', 'username', 'first_name', 'last_name')
+                    ->get();
+
+                $stats['active_user_list'] = $users->map(fn ($u) => [
+                    'id' => $u->user_id,
+                    'name' => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')) ?: $u->username,
+                    'username' => $u->username,
+                    'last_active' => $activeMap[$u->user_id]->last_active ?? null,
+                ])->values();
+            }
         } catch (\Exception $e) {
             $stats['auth_error'] = $e->getMessage();
         }
