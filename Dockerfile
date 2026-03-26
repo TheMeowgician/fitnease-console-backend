@@ -53,12 +53,15 @@ RUN composer install \
 # Copy the rest of the application code
 COPY . .
 
-# Generate the optimised autoloader now that all files are present
-RUN composer dump-autoload --optimize --no-dev
+# Generate the optimised autoloader (skip scripts — no .env during build)
+RUN composer dump-autoload --optimize --no-dev --no-scripts
 
 # Set correct ownership and permissions for Laravel writable directories
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
+
+# Run package discovery and cache config at container start (when .env is available)
+CMD ["sh", "-c", "php artisan package:discover --ansi && php artisan config:clear && apache2-foreground"]
 
 EXPOSE 80
