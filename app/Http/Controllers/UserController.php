@@ -15,8 +15,10 @@ class UserController extends Controller
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                $q->where('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%");
             });
         }
 
@@ -25,8 +27,8 @@ class UserController extends Controller
         }
 
         $users = $query->select([
-            'id', 'name', 'email', 'fitness_level', 'age', 'gender',
-            'height', 'weight', 'created_at', 'updated_at',
+            'user_id as id', 'username', 'first_name', 'last_name', 'email',
+            'fitness_level', 'age', 'gender', 'created_at', 'updated_at',
         ])->orderBy('created_at', 'desc')->paginate(20);
 
         return response()->json($users);
@@ -36,7 +38,7 @@ class UserController extends Controller
     {
         $user = DB::connection('fitnease_auth')
             ->table('users')
-            ->where('id', $id)
+            ->where('user_id', $id)
             ->first();
 
         if (!$user) {
@@ -54,9 +56,9 @@ class UserController extends Controller
         // Get user's groups from social DB
         $groups = DB::connection('fitnease_social')
             ->table('group_members')
-            ->join('groups', 'groups.id', '=', 'group_members.group_id')
+            ->join('groups', 'groups.group_id', '=', 'group_members.group_id')
             ->where('group_members.user_id', $id)
-            ->select('groups.id', 'groups.name', 'group_members.role', 'group_members.created_at as joined_at')
+            ->select('groups.group_id as id', 'groups.group_name as name', 'group_members.member_role as role', 'group_members.joined_at')
             ->get();
 
         return response()->json([
@@ -74,7 +76,7 @@ class UserController extends Controller
 
         $user = DB::connection('fitnease_auth')
             ->table('users')
-            ->where('id', $id)
+            ->where('user_id', $id)
             ->first();
 
         if (!$user) {
@@ -85,7 +87,7 @@ class UserController extends Controller
 
         DB::connection('fitnease_auth')
             ->table('users')
-            ->where('id', $id)
+            ->where('user_id', $id)
             ->update(['fitness_level' => $request->fitness_level]);
 
         AuditService::log('update_fitness_level', 'user', $id, [

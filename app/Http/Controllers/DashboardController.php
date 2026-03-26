@@ -75,7 +75,7 @@ class DashboardController extends Controller
             // Recent signups
             $activity['recent_users'] = DB::connection('fitnease_auth')
                 ->table('users')
-                ->select('id', 'name', 'email', 'created_at')
+                ->select('user_id as id', 'username', 'first_name', 'last_name', 'email', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
@@ -87,7 +87,7 @@ class DashboardController extends Controller
             // Recent workouts
             $activity['recent_workouts'] = DB::connection('fitnease_tracking')
                 ->table('workout_sessions')
-                ->select('id', 'user_id', 'type', 'status', 'created_at')
+                ->select('session_id as id', 'user_id', 'session_type as type', 'is_completed as status', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
