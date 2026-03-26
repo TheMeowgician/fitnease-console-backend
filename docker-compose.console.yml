@@ -57,3 +57,4 @@ volumes:
 networks:
   fitnease-network:
     external: true
+    name: fitnease_fitnease-network
