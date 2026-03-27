@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GeminiController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MLController;
 use App\Http\Controllers\UserController;
@@ -35,6 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Audit Logs
     Route::get('/audit-logs', [AuditLogController::class, 'index']);
+
+    // AI Chat
+    Route::post('/ai/chat', [GeminiController::class, 'chat']);
 
     // Health Check
     Route::get('/health', [HealthController::class, 'index']);

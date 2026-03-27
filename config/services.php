@@ -39,4 +39,8 @@ return [
         'url' => env('ML_SERVICE_URL', 'http://18.136.99.170:8090/ml'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', ''),
+    ],
+
 ];
