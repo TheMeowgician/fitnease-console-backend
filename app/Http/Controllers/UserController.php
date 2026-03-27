@@ -149,6 +149,65 @@ class UserController extends Controller
         }
     }
 
+    public function userRatings(int $id): JsonResponse
+    {
+        try {
+            $ratings = DB::connection('fitnease_tracking')
+                ->table('workout_exercise_ratings')
+                ->where('user_id', $id)
+                ->where('completed', 1)
+                ->select('exercise_id', 'rating_value', 'difficulty_perceived', 'enjoyment_rating', 'rated_at')
+                ->orderByDesc('rated_at')
+                ->get();
+
+            if ($ratings->isEmpty()) {
+                return response()->json(['ratings' => [], 'summary' => null]);
+            }
+
+            // Get exercise details from content DB
+            $exerciseIds = $ratings->pluck('exercise_id')->unique()->toArray();
+            $exercises = DB::connection('fitnease_content')
+                ->table('exercises')
+                ->whereIn('exercise_id', $exerciseIds)
+                ->select('exercise_id', 'exercise_name', 'difficulty_level', 'target_muscle_group', 'equipment_needed')
+                ->get()
+                ->keyBy('exercise_id');
+
+            // Merge ratings with exercise info
+            $enriched = $ratings->map(function ($r) use ($exercises) {
+                $ex = $exercises->get($r->exercise_id);
+                return [
+                    'exercise_id' => (int) $r->exercise_id,
+                    'exercise_name' => $ex->exercise_name ?? null,
+                    'difficulty_level' => $ex ? (int) $ex->difficulty_level : null,
+                    'target_muscle_group' => $ex->target_muscle_group ?? null,
+                    'equipment_needed' => $ex->equipment_needed ?? null,
+                    'rating_value' => (float) $r->rating_value,
+                    'difficulty_perceived' => $r->difficulty_perceived,
+                    'enjoyment_rating' => $r->enjoyment_rating ? (float) $r->enjoyment_rating : null,
+                    'rated_at' => $r->rated_at,
+                ];
+            });
+
+            // Summary stats
+            $avgRating = $ratings->avg('rating_value');
+            $diffCounts = $enriched->groupBy('difficulty_level')->map->count();
+            $muscleCounts = $enriched->groupBy('target_muscle_group')->map->count();
+
+            return response()->json([
+                'ratings' => $enriched->values(),
+                'summary' => [
+                    'total' => $ratings->count(),
+                    'average_rating' => round($avgRating, 2),
+                    'by_difficulty' => $diffCounts,
+                    'by_muscle_group' => $muscleCounts,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['ratings' => [], 'summary' => null, 'error' => $e->getMessage()], 200);
+        }
+    }
+
     private const LEVEL_RANK = [
         'beginner' => 1,
         'intermediate' => 2,
