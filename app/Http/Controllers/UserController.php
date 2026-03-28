@@ -271,6 +271,101 @@ class UserController extends Controller
     }
 
     /**
+     * Delete a user and cascade across all microservice databases.
+     * Safety: blocks deletion of protected accounts (gabsm2000).
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        // Block deletion of protected accounts
+        $protectedIds = [6168]; // gabsm2000
+        if (in_array($id, $protectedIds)) {
+            return response()->json(['message' => 'This account is protected and cannot be deleted.'], 403);
+        }
+
+        $user = DB::connection('fitnease_auth')
+            ->table('users')
+            ->where('user_id', $id)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $deleted = ['username' => $user->username, 'tables' => []];
+
+        try {
+            // 1. Auth DB: tokens, assessments, user record
+            $count = DB::connection('fitnease_auth')->table('personal_access_tokens')
+                ->where('tokenable_id', $id)->delete();
+            if ($count) $deleted['tables'][] = "personal_access_tokens: {$count}";
+
+            $count = DB::connection('fitnease_auth')->table('fitness_assessments')
+                ->where('user_id', $id)->delete();
+            if ($count) $deleted['tables'][] = "fitness_assessments: {$count}";
+
+            // 2. Tracking DB: ratings, workout sessions
+            try {
+                $count = DB::connection('fitnease_tracking')->table('workout_exercise_ratings')
+                    ->where('user_id', $id)->delete();
+                if ($count) $deleted['tables'][] = "workout_exercise_ratings: {$count}";
+
+                $count = DB::connection('fitnease_tracking')->table('workout_sessions')
+                    ->where('user_id', $id)->delete();
+                if ($count) $deleted['tables'][] = "workout_sessions: {$count}";
+            } catch (\Exception $e) {
+                $deleted['tables'][] = "tracking: skipped ({$e->getMessage()})";
+            }
+
+            // 3. Planning DB: weekly plans
+            try {
+                $count = DB::connection('fitnease_planning')->table('weekly_workout_plans')
+                    ->where('user_id', $id)->delete();
+                if ($count) $deleted['tables'][] = "weekly_workout_plans: {$count}";
+            } catch (\Exception $e) {
+                $deleted['tables'][] = "planning: skipped ({$e->getMessage()})";
+            }
+
+            // 4. Engagement DB: user achievements
+            try {
+                $count = DB::connection('fitnease_engagement')->table('user_achievements')
+                    ->where('user_id', $id)->delete();
+                if ($count) $deleted['tables'][] = "user_achievements: {$count}";
+            } catch (\Exception $e) {
+                $deleted['tables'][] = "engagement: skipped ({$e->getMessage()})";
+            }
+
+            // 5. Social DB: group memberships
+            try {
+                $count = DB::connection('fitnease_social')->table('group_members')
+                    ->where('user_id', $id)->delete();
+                if ($count) $deleted['tables'][] = "group_members: {$count}";
+            } catch (\Exception $e) {
+                $deleted['tables'][] = "social: skipped ({$e->getMessage()})";
+            }
+
+            // 6. Finally delete the user record itself
+            DB::connection('fitnease_auth')->table('users')->where('user_id', $id)->delete();
+            $deleted['tables'][] = "users: 1";
+
+            AuditService::log('delete_user', 'user', $id, [
+                'username' => $user->username,
+                'email' => $user->email,
+                'cascade' => $deleted['tables'],
+            ]);
+
+            return response()->json([
+                'message' => "User @{$user->username} deleted successfully.",
+                'deleted' => $deleted,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete user: ' . $e->getMessage(),
+                'partial_deleted' => $deleted,
+            ], 500);
+        }
+    }
+
+    /**
      * Insert level achievement directly into engagement DB (if not already earned).
      * Uses try/catch so a failure here never blocks the fitness level update.
      */

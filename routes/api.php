@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/users/{id}/fitness-level', [UserController::class, 'updateFitnessLevel']);
     Route::get('/users/{id}/weekly-plan', [UserController::class, 'weeklyPlan']);
     Route::get('/users/{id}/ratings', [UserController::class, 'userRatings']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
     // ML Recommendations
     Route::get('/ml/recommendations/{userId}', [MLController::class, 'getRecommendations']);
