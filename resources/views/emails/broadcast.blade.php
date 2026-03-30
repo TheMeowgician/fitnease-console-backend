@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $subject }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: 'Poppins', Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f5;">
         <tr>
             <td align="center" style="padding: 40px 20px;">
@@ -34,7 +35,7 @@
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
                                 <tr>
                                     <td style="background-color: #5aaed8; border-radius: 8px;">
-                                        <a href="{{ $buttonUrl }}" target="_blank" style="display: inline-block; color: #ffffff; text-decoration: none; padding: 14px 32px; font-size: 16px; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">{{ $buttonText }}</a>
+                                        <a href="{{ $buttonUrl }}" target="_blank" style="display: inline-block; color: #ffffff; text-decoration: none; padding: 14px 32px; font-size: 16px; font-weight: bold; font-family: 'Poppins', Arial, Helvetica, sans-serif;">{{ $buttonText }}</a>
                                     </td>
                                 </tr>
                             </table>
