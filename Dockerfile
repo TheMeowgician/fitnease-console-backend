@@ -57,7 +57,7 @@ COPY . .
 RUN composer dump-autoload --optimize --no-dev --no-scripts
 
 # Ensure Laravel framework directories exist and set permissions
-RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
