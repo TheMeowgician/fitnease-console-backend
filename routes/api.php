@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\GeminiController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MLController;
@@ -40,6 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // AI Chat
     Route::post('/ai/chat', [GeminiController::class, 'chat']);
+
+    // Email
+    Route::post('/email/send', [EmailController::class, 'send']);
+    Route::post('/email/preview', [EmailController::class, 'preview']);
 
     // Health Check
     Route::get('/health', [HealthController::class, 'index']);
