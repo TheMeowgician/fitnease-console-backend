@@ -14,9 +14,9 @@
                     <!-- Header -->
                     <tr>
                         <td style="background-color: #ffffff; padding: 32px 40px 24px; text-align: center; border-bottom: 2px solid #5aaed8;">
-                            <img src="{{ config('app.url') }}/fitnease-logo.png" alt="FitNEase" width="80" height="80" style="display: block; margin: 0 auto 12px; width: 80px; height: 80px;">
+                            <img src="https://fitnease-console-frontend.vercel.app/fitnease-logo.png" alt="FitNEase" width="80" height="80" style="display: block; margin: 0 auto 12px; width: 80px; height: 80px;">
                             <h1 style="margin: 0; color: #333333; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">FitNEase</h1>
-                            <p style="margin: 4px 0 0; color: #999999; font-size: 13px;">Your Fitness Companion</p>
+                            <p style="margin: 4px 0 0; color: #999999; font-size: 13px;">Your Personal Tabata Companion</p>
                         </td>
                     </tr>
 
