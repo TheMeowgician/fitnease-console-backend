@@ -13,9 +13,10 @@
 
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: #4CAF50; padding: 32px 40px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: 1px;">FitNEase</h1>
-                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 13px;">Your Fitness Companion</p>
+                        <td style="background-color: #ffffff; padding: 32px 40px 24px; text-align: center; border-bottom: 2px solid #5aaed8;">
+                            <img src="{{ config('app.url') }}/fitnease-logo.png" alt="FitNEase" width="80" height="80" style="display: block; margin: 0 auto 12px; width: 80px; height: 80px;">
+                            <h1 style="margin: 0; color: #333333; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">FitNEase</h1>
+                            <p style="margin: 4px 0 0; color: #999999; font-size: 13px;">Your Fitness Companion</p>
                         </td>
                     </tr>
 
@@ -32,7 +33,7 @@
                         <td style="padding: 0 40px 32px; text-align: center;">
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
                                 <tr>
-                                    <td style="background-color: #4CAF50; border-radius: 8px;">
+                                    <td style="background-color: #5aaed8; border-radius: 8px;">
                                         <a href="{{ $buttonUrl }}" target="_blank" style="display: inline-block; color: #ffffff; text-decoration: none; padding: 14px 32px; font-size: 16px; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">{{ $buttonText }}</a>
                                     </td>
                                 </tr>
